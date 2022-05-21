@@ -1,0 +1,15 @@
+{
+    "name": "verstka/verstka",
+    "description": "Verstka sdk for awesome using",
+    "type": "library",
+    "license": "LGPL-3.0-or-later",
+    "require": {
+        "php": ">=7.1",
+        "guzzlehttp/guzzle": "^7.4",
+        "ext-json": "*",
+        "ext-curl": "*"
+    },
+    "autoload": {
+        "Verstka\\": "src"
+    }
+}
