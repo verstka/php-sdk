@@ -10,6 +10,8 @@
         "ext-curl": "*"
     },
     "autoload": {
-        "Verstka\\": "src"
+        "psr-4": {
+            "Verstka\\": "src"
+        }
     }
 }
