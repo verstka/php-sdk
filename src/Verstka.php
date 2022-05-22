@@ -90,7 +90,7 @@ class Verstka
             $article_body = $data['html_body'];
             $verstkaDownloadUrl = $data['download_url'];
             $custom_fields = json_decode($data['custom_fields'], true);
-            $is_mobile = $custom_fields['mobile'] === true;
+            $isMobile = $custom_fields['mobile'] === true;
             $material_id = $data['material_id'];
             $user_id = $data['user_id'];
 
@@ -100,26 +100,20 @@ class Verstka
                 'unixtime' => time()
             ]);
 
-            [$images_ready, $lacking_images] = $this->uploadImages($verstkaDownloadUrl, $articleImages);
+            [$imagesReady, $lacking_images] = $this->uploadImages($verstkaDownloadUrl, $articleImages);
 
-            $call_back_result = call_user_func($clientCallback, [
+            $callbackResult = call_user_func($clientCallback, [
                 'article_body' => $article_body,
                 'custom_fields' => $custom_fields,
-                'is_mobile' => $is_mobile,
+                'is_mobile' => $isMobile,
                 'material_id' => $material_id,
                 'user_id' => $user_id,
-                'images' => $images_ready
+                'images' => $imagesReady
             ]);
 
             $debug = [];
-            if ($call_back_result === true) {
-                $debug = [];
-                foreach ($images_ready as $image => $image_temp_file) {    // clean temp folder if callback successfull
-                    if (is_readable($image_temp_file)) {
-                        unlink($image_temp_file);
-                        $debug[] = $image_temp_file;
-                    }
-                }
+            if ($callbackResult === true) {
+                $debug = $this->cleanTempFiles($imagesReady, true);
             }
 
             $additional_data = [
@@ -265,6 +259,24 @@ class Verstka
 
     private function getVerstkaUrl(string $path): string
     {
-        return $this->vertkaHost . '$path';
+        return $this->verstkaHost . $path;
+    }
+
+    /**
+     * @param array $images
+     * @param bool $debugInfo
+     * @return array|null
+     */
+    private function cleanTempFiles(array $images, bool $debugInfo = false): ?array
+    {
+        $debug = [];
+        foreach ($images as $image => $imageTempFile) {    // clean temp folder if callback successfull
+            if (is_readable($imageTempFile)) {
+                unlink($imageTempFile);
+                $debug[] = $imageTempFile;
+            }
+        }
+
+        return $debugInfo ? $debug : null;
     }
 }
