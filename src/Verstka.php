@@ -27,28 +27,13 @@ class Verstka
     /**
      * @var string
      */
-    private $callbackUrl;
+    private $verstkaHost;
 
-    public function __construct(string $apiKey, string $secretKey)
+    public function __construct()
     {
-        $this->apiKey = $apiKey;
-        $this->secretKey = $secretKey;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCallbackUrl(): string
-    {
-        return $this->callbackUrl;
-    }
-
-    /**
-     * @param string $callbackUrl
-     */
-    public function setCallbackUrl(string $callbackUrl): void
-    {
-        $this->callbackUrl = $callbackUrl;
+        $this->apiKey = getenv('verstka_apikey');
+        $this->secretKey = getenv('verstka_secret');
+        $this->verstkaHost = getenv('verstka_host');
     }
 
     /**
@@ -60,7 +45,7 @@ class Verstka
      * @throws GuzzleException
      * @throws VerstkaException
      */
-    public function open(string $name, string $articleBody, bool $isMobile, array $customFields = []): string
+    public function open(string $name, string $articleBody, bool $isMobile, string $clientSaveUrl, array $customFields = []): string
     {
         $customFields = array_merge([
             'auth_user' => 'test',        //if You have http authorization on callback url
@@ -71,29 +56,18 @@ class Verstka
         ], $customFields);
 
         $params = [
-            'form_params' => [
-                'user_id' => $_SERVER['PHP_AUTH_USER'] ?? 1,
-                'user_ip' => $_SERVER['REMOTE_ADDR'],
-                'material_id' => $name,
-                'html_body' => $articleBody,
-                'callback_url' => $this->getCallbackUrl(),
-                'host_name' => $_SERVER['HTTP_HOST'],
-                'api-key' => $this->apiKey,
-                'customFields' => json_encode($customFields)
-            ],
-            // 'allow_redirects' => ['track_redirects' => true],
-            'connect_timeout' => 3.14,
-            'headers' => [
-                'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
-            ]
-            // 'auth' => ['username', 'password']
+            'user_id' => $_SERVER['PHP_AUTH_USER'] ?? 1,
+            'user_ip' => $_SERVER['REMOTE_ADDR'],
+            'material_id' => $name,
+            'html_body' => $articleBody,
+            'callback_url' => $clientSaveUrl,
+            'host_name' => $_SERVER['HTTP_HOST'],
+            'api-key' => $this->apiKey,
+            'customFields' => json_encode($customFields)
         ];
+        $params['callback_sign'] = self::getRequestSalt($this->secretKey, $params, 'api-key, material_id, user_id, callback_url');
 
-        $params['form_params']['callback_sign'] = self::getRequestSalt($this->secretKey, $params['form_params'], 'api-key, material_id, user_id, callback_url');
-
-        $verstka_url_open = (getenv('SSL') ? 'https://' : 'http://') . getenv('verstka_host') . '/1/open';
-
-        $result = $this->sendRequest($verstka_url_open, $params);
+        $result = $this->sendRequest($this->getVerstkaUrl('/1/open'), $params);
         if (empty($result['data']) && empty($result['data']['edit_url'])) {
             throw new VerstkaException('Could not get url for editing');
         }
@@ -122,14 +96,8 @@ class Verstka
 
             //Request list of images
             $articleImages = $this->sendRequest($verstkaDownloadUrl, [
-                'connect_timeout' => 3.14,
-                'headers' => [
-                    'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
-                ],
-                'form_params' => [
-                    'api-key' => $this->apiKey,
-                    'unixtime' => time()
-                ]
+                'api-key' => $this->apiKey,
+                'unixtime' => time()
             ]);
 
             [$images_ready, $lacking_images] = $this->uploadImages($verstkaDownloadUrl, $articleImages);
@@ -179,7 +147,13 @@ class Verstka
     private function sendRequest(string $url, array $params): array
     {
         $guzzleClient = new Client(['timeout' => 60.0]); //Base URI is used with relative requests // 'base_uri' => 'http://httpbin.org',
-        $response = $guzzleClient->post($url, $params);
+        $response = $guzzleClient->post($url, [
+            'connect_timeout' => 3.14,
+            'headers' => [
+                'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
+            ],
+            'form_params' => $params
+        ]);
         $result_json = $response->getBody()->getContents();
         $code = $response->getStatusCode();
         $result = json_decode($result_json, true);
@@ -287,5 +261,10 @@ class Verstka
         }
 
         return [$images_ready, $lacking_images];
+    }
+
+    private function getVerstkaUrl(string $path): string
+    {
+        return $this->vertkaHost . '$path';
     }
 }
