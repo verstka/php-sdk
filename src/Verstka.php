@@ -6,11 +6,9 @@ namespace Verstka;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Handler\CurlMultiHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Promise\Utils;
 use Verstka\Exception\ValidationException;
 use Verstka\Exception\VerstkaException;
+use Verstka\Image\ImageLoader;
 
 class Verstka
 {
@@ -29,11 +27,17 @@ class Verstka
      */
     private $verstkaHost;
 
+    /**
+     * @var ImageLoader
+     */
+    private $loader;
+
     public function __construct()
     {
         $this->apiKey = getenv('verstka_apikey');
         $this->secretKey = getenv('verstka_secret');
         $this->verstkaHost = getenv('verstka_host');
+        $this->loader = new ImageLoader();
     }
 
     /**
@@ -100,7 +104,7 @@ class Verstka
                 'unixtime' => time()
             ]);
 
-            [$imagesReady, $lacking_images] = $this->uploadImages($verstkaDownloadUrl, $articleImages);
+            [$imagesReady, $lackingImages] = $this->loader->load($verstkaDownloadUrl, $articleImages);
 
             $callbackResult = call_user_func($clientCallback, [
                 'article_body' => $article_body,
@@ -113,7 +117,7 @@ class Verstka
 
             $debug = [];
             if ($callbackResult === true) {
-                $debug = $this->cleanTempFiles($imagesReady, true);
+                $debug = $this->loader->cleanTempFiles($imagesReady, true);
             }
 
             $additional_data = [
@@ -123,7 +127,7 @@ class Verstka
 //                'attempts' => $attempts,
                 'debug' => $debug,
                 'custom_fields' => $custom_fields,
-                'lacking_images' => $lacking_images
+                'lacking_images' => $lackingImages
             ];
             return static::formJSON(1, 'save sucessfull', $additional_data);
         } catch (\Throwable $e) {
@@ -199,84 +203,8 @@ class Verstka
         }
     }
 
-    private function uploadImages(string $url, array $result): array
-    {
-        $images_list = $result['data'];
-        $images_to_download = $images_list;
-
-        $guzzle_client = new Client([
-            'timeout' => 180.0, // see how i set a timeout
-            'handler' => HandlerStack::create(new CurlMultiHandler([
-                'options' => [
-                    CURLMOPT_MAX_TOTAL_CONNECTIONS => 20,
-                    CURLMOPT_MAX_HOST_CONNECTIONS => 20,
-                ]
-            ]))
-        ]);
-
-        $attempts = [];
-        $images_ready = [];
-        for ($i = 1; $i <= 3; $i++) {
-
-            $requestPromises = [];
-            $temp_files = [];
-            foreach ($images_to_download as $image_name) {
-                $image_url = sprintf('%s/%s', $url, $image_name);
-                $tmp_file = tempnam(sys_get_temp_dir(), str_replace('.', '_', uniqid('vms_' . microtime(true) . '_' . $image_name)));
-                $temp_files[$image_name] = $tmp_file;
-                $requestPromises[$image_name] = $guzzle_client->getAsync($image_url, [
-                    'sink' => $tmp_file,
-                    'connect_timeout' => 3.14
-                ]);
-                $attempts[$image_name] = empty($attempts[$image_name]) ? 1 : $attempts[$image_name] + 1;
-            }
-
-            $images_to_download = [];
-            $results = Utils::settle($requestPromises)->wait();
-            foreach ($results as $image_name => $image_result) {
-                if (
-                    $image_result['state'] !== 'fulfilled'
-                    || !file_exists($temp_files[$image_name])
-                    || (filesize($temp_files[$image_name]) === 0)
-                ) {
-                    $images_to_download[] = $image_name;
-                    unlink($temp_files[$image_name]);
-                } else {
-                    $images_ready[$image_name] = $temp_files[$image_name];
-                }
-            }
-        }
-
-        $lacking_images = [];
-        foreach ($images_list as $image_name) {
-            if (empty($images_ready[$image_name])) {
-                $lacking_images[] = $image_name;
-            }
-        }
-
-        return [$images_ready, $lacking_images];
-    }
-
     private function getVerstkaUrl(string $path): string
     {
         return $this->verstkaHost . $path;
-    }
-
-    /**
-     * @param array $images
-     * @param bool $debugInfo
-     * @return array|null
-     */
-    private function cleanTempFiles(array $images, bool $debugInfo = false): ?array
-    {
-        $debug = [];
-        foreach ($images as $image => $imageTempFile) {    // clean temp folder if callback successfull
-            if (is_readable($imageTempFile)) {
-                unlink($imageTempFile);
-                $debug[] = $imageTempFile;
-            }
-        }
-
-        return $debugInfo ? $debug : null;
     }
 }
