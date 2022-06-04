@@ -1,6 +1,6 @@
 {
     "name": "verstka/verstka",
-    "description": "Verstka sdk for awesome using",
+    "description": "Verstka sdk",
     "type": "library",
     "license": "LGPL-3.0-or-later",
     "require": {
