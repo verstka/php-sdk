@@ -41,7 +41,7 @@ class ImageLoader
 
         $imagesReady = [];
         $lackingImages = [];
-        foreach (array_chunk($requestPromises, 20) as $promises) {
+        foreach (array_chunk($requestPromises, 20, true) as $promises) {
             $results = Utils::settle($promises)->wait();
             foreach ($results as $image_name => $image_result) {
                 if (
