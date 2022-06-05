@@ -157,7 +157,7 @@ class Verstka
         $code = $response->getStatusCode();
         $result = json_decode($result_json, true);
 
-        if ($code !== 200 || json_last_error() || empty($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
+        if ($code !== 200 || json_last_error() || !isset($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
             throw new VerstkaException(sprintf("verstka api open return %d\n%s", $code, $result_json));
         }
 
