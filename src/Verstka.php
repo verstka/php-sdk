@@ -42,14 +42,15 @@ class Verstka
 
     /**
      * @param string $name
-     * @param string $articleBody
+     * @param string|null $articleBody
      * @param bool $isMobile
+     * @param string $clientSaveUrl
      * @param array $customFields
      * @return string - verstka edit url
      * @throws GuzzleException
      * @throws VerstkaException
      */
-    public function open(string $name, string $articleBody, bool $isMobile, string $clientSaveUrl, array $customFields = []): string
+    public function open(string $name, ?string $articleBody, bool $isMobile, string $clientSaveUrl, array $customFields = []): string
     {
         $customFields = array_merge([
             'auth_user' => 'test',        //if You have http authorization on callback url
