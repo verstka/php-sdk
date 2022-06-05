@@ -67,7 +67,7 @@ class Verstka
             'callback_url' => $clientSaveUrl,
             'host_name' => $_SERVER['HTTP_HOST'],
             'api-key' => $this->apiKey,
-            'customFields' => json_encode($customFields)
+            'custom_fields' => json_encode($customFields)
         ];
         $params['callback_sign'] = self::getRequestSalt($this->secretKey, $params, 'api-key, material_id, user_id, callback_url');
 
