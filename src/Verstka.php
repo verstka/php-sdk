@@ -93,22 +93,22 @@ class Verstka
 //          Article params:
             $article_body = $data['html_body'];
             $verstkaDownloadUrl = $data['download_url'];
-            $custom_fields = json_decode($data['custom_fields'], true);
-            $isMobile = $custom_fields['mobile'] === true;
+            $customFields = json_decode($data['custom_fields'], true);
+            $isMobile = isset($customFields['mobile']) && $customFields['mobile'] === true;
             $material_id = $data['material_id'];
             $user_id = $data['user_id'];
 
             //Request list of images
-            $articleImages = $this->sendRequest($verstkaDownloadUrl, [
+            $verstkaResponse = $this->sendRequest($verstkaDownloadUrl, [
                 'api-key' => $this->apiKey,
                 'unixtime' => time()
             ]);
 
-            [$imagesReady, $lackingImages] = $this->loader->load($verstkaDownloadUrl, $articleImages);
+            [$imagesReady, $lackingImages] = $this->loader->load($verstkaDownloadUrl, $verstkaResponse['data']);
 
             $callbackResult = call_user_func($clientCallback, [
                 'article_body' => $article_body,
-                'custom_fields' => $custom_fields,
+                'custom_fields' => $customFields,
                 'is_mobile' => $isMobile,
                 'material_id' => $material_id,
                 'user_id' => $user_id,
@@ -126,7 +126,7 @@ class Verstka
 //                'temp_files' => $temp_files,
 //                'attempts' => $attempts,
                 'debug' => $debug,
-                'custom_fields' => $custom_fields,
+                'custom_fields' => $customFields,
                 'lacking_images' => $lackingImages
             ];
             return static::formJSON(1, 'save sucessfull', $additional_data);
