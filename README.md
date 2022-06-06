@@ -1,6 +1,6 @@
 ## Editing an article
 
-# Saving an article
+## Saving an article
 
 ## Use your own fonts
 
