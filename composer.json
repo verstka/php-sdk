@@ -1,6 +1,6 @@
 {
-    "name": "verstka/verstka",
-    "description": "Verstka sdk",
+    "name": "verstka/php-sdk",
+    "description": "Verstka PHP sdk",
     "type": "library",
     "license": "LGPL-3.0-or-later",
     "require": {
