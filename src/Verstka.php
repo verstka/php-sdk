@@ -28,6 +28,11 @@ class Verstka
     private $verstkaHost;
 
     /**
+     * @var bool
+     */
+    private $verstkaDebug;
+
+    /**
      * @var ImageLoader
      */
     private $loader;
@@ -37,6 +42,7 @@ class Verstka
         $this->apiKey = getenv('verstka_apikey');
         $this->secretKey = getenv('verstka_secret');
         $this->verstkaHost = getenv('verstka_host');
+        $this->verstkaDebug = getenv('verstka_debug') ?? false;
         $this->loader = new ImageLoader();
     }
 
@@ -50,7 +56,7 @@ class Verstka
      * @throws GuzzleException
      * @throws VerstkaException
      */
-    public function open(string $name, ?string $articleBody, bool $isMobile, string $clientSaveUrl, array $customFields = []): string
+    public function open(string $material_id, ?string $articleBody, bool $isMobile, string $clientSaveUrl, array $customFields = []): string
     {
         $customFields = array_merge([
             'auth_user' => 'test',        //if You have http authorization on callback url
@@ -63,7 +69,7 @@ class Verstka
         $params = [
             'user_id' => $_SERVER['PHP_AUTH_USER'] ?? 1,
             'user_ip' => $_SERVER['REMOTE_ADDR'],
-            'material_id' => $name,
+            'material_id' => $material_id,
             'html_body' => $articleBody,
             'callback_url' => $clientSaveUrl,
             'host_name' => $_SERVER['HTTP_HOST'],
@@ -118,14 +124,10 @@ class Verstka
 
             $debug = [];
             if ($callbackResult === true) {
-                $debug = $this->loader->cleanTempFiles($imagesReady, true);
+                $debug = $this->loader->cleanTempFiles($imagesReady, $this->verstkaDebug);
             }
 
             $additional_data = [
-//                'images_list' => $images_list,
-//                'results' => $results,
-//                'temp_files' => $temp_files,
-//                'attempts' => $attempts,
                 'debug' => $debug,
                 'custom_fields' => $customFields,
                 'lacking_images' => $lackingImages
