@@ -1,6 +1,73 @@
+## Setting up
+
+First, You need to require package by composer with ```composer require verstka/php-sdk```, then set ```.env``` file in the root of your project with settings listed below:
+
+```
+verstka_host = "http://verstka.org"
+verstka_apikey = "..."
+verstka_secret = "..."
+```
+
 ## Editing an article
 
+```
+$sql = 'SELECT * FROM t_materials WHERE name = :name';
+$article = static::getDatabase()->fetchOne($sql, ['name' => $material_id]);
+
+$body = $is_mobile ? $article['mobile_html'] : $article['desktop_html'];
+
+$custom_fileds = [
+    'auth_user' => 'test',                                      //if You have http authorization on callback url
+    'auth_pw' => 'test',                                        //if You have http authorization on callback url
+    'fonts.css' => 'https://mydomain.com/static/vms_fonts.css', //if You use custom fonts set
+];
+```
+for example and then just:
+```
+$verstka = new Verstka();
+$verstka_url = $verstka->open($material_id, $body, $is_mobile, 'https://mydomain.com/verstka/save', $custom_fileds);
+```
+
 ## Saving an article
+
+```
+$verstka = new Verstka();
+return $verstka->save($client_callback_function, $data);
+```
+where
+```
+function clientCallback($data)
+{
+    //file_put_contents('/tmp/client_callback.log', print_r($data, true));
+
+    $is_fail = false;
+    $article_body = $data['article_body'];
+    $article_static_dir_rel = sprintf('/upload/verstka/%s%s', $data['is_mobile'] ? 'm_':'', $data['material_id']);
+    $article_static_dir_abs = sprintf('%s%s%s%s', WEBROOT, DIRECTORY_SEPARATOR, '/public/', $article_static_dir_rel);
+    @mkdir($article_static_dir_abs,  0777, true);
+    foreach ($data['images'] as $image_name => $image_file) {
+        $is_renamed = rename($image_file, sprintf('%s/%s', $article_static_dir_abs, $image_name));
+        $is_fail = $is_fail || !$is_renamed;
+        $html_image_name_old = sprintf('/vms_images/%s', $image_name);
+        $html_image_name_new = sprintf('%s/%s', $article_static_dir_rel, $image_name);
+        if ($is_renamed) {
+            $article_body = str_replace($html_image_name_old, $html_image_name_new, $article_body);
+        }
+    }
+
+    if ($data['is_mobile']) {
+        $sql = 'update t_materials set mobile_html =  :article_body where name = :name;';
+    } else {
+        $sql = 'update t_materials set desktop_html = :article_body where name = :name;';
+    }
+
+    $db = Plugin::getDatabase();
+    $saved = (bool)$db->fetchAffected($sql, ['article_body' => $article_body, 'name' => $data['material_id']]);
+    $is_fail = $is_fail || !$saved;
+
+    return !$is_fail;
+}
+```
 
 ## Use your own fonts
 
