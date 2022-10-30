@@ -33,6 +33,11 @@ class Verstka
     private $verstkaDebug;
 
     /**
+     * @var string
+     */
+    private $imagesHost;
+
+    /**
      * @var ImageLoader
      */
     private $loader;
@@ -43,6 +48,7 @@ class Verstka
         $this->secretKey = getenv('verstka_secret');
         $this->verstkaHost = getenv('verstka_host');
         $this->verstkaDebug = getenv('verstka_debug') ?? false;
+        $this->imagesHost = getenv('images_host') ?? $_SERVER['HTTP_HOST'];
         $this->loader = new ImageLoader();
     }
 
@@ -72,7 +78,7 @@ class Verstka
             'material_id' => $material_id,
             'html_body' => $articleBody,
             'callback_url' => $clientSaveUrl,
-            'host_name' => $_SERVER['HTTP_HOST'],
+            'host_name' => $this->imagesHost,
             'api-key' => $this->apiKey,
             'custom_fields' => json_encode($customFields)
         ];
