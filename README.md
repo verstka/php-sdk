@@ -8,6 +8,15 @@ verstka_apikey = "..."
 verstka_secret = "..."
 ```
 
+if you don't use vlucas/phpdotenv or yiithings/yii2-dotenv or something like that just set environment before new object of Verstka create:
+
+```
+putenv('verstka_host=http://verstka.org');
+putenv('verstka_apikey=...');
+putenv('verstka_secret=...');
+
+```
+
 ## Editing an article
 
 ```
@@ -20,6 +29,7 @@ $custom_fileds = [
     'auth_user' => 'test',                                      //if You have http authorization on callback url
     'auth_pw' => 'test',                                        //if You have http authorization on callback url
     'fonts.css' => 'https://mydomain.com/static/vms_fonts.css', //if You use custom fonts set
+    'mobile' => true                                            //if You open mobile version of the post
 ];
 ```
 for example and then just:
