@@ -119,15 +119,20 @@ class Verstka
 
             [$imagesReady, $lackingImages] = $this->loader->load($verstkaDownloadUrl, $verstkaResponse['data']);
 
-            $callbackResult = call_user_func($clientCallback, [
-                'article_body' => $article_body,
-                'custom_fields' => $customFields,
-                'is_mobile' => $isMobile,
-                'material_id' => $material_id,
-                'user_id' => $user_id,
-                'images' => $imagesReady
-            ]);
+        } catch (\Throwable $e) {
+            return static::formJSON($e->getCode(), $e->getMessage(), $data);
+        }
 
+        $callbackResult = call_user_func($clientCallback, [
+            'article_body' => $article_body,
+            'custom_fields' => $customFields,
+            'is_mobile' => $isMobile,
+            'material_id' => $material_id,
+            'user_id' => $user_id,
+            'images' => $imagesReady
+        ]);
+
+        try {
             $debug = [];
             if ($callbackResult === true) {
                 $debug = $this->loader->cleanTempFiles($imagesReady, $this->verstkaDebug);
