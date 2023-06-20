@@ -73,7 +73,7 @@ class Verstka
         ], $customFields);
 
         $params = [
-            'user_id' => $_SERVER['PHP_AUTH_USER'] ?? 1,
+            'user_id' => $customFields['user_id'] ?? ($_SERVER['PHP_AUTH_USER'] ?? 1),
             'user_ip' => $_SERVER['REMOTE_ADDR'],
             'material_id' => $material_id,
             'html_body' => $articleBody,
@@ -90,6 +90,55 @@ class Verstka
         }
 
         return $result['data']['edit_url'];
+    }
+
+    /**
+     * @param string $secret
+     * @param array $data
+     * @param string $fields
+     * @return string
+     */
+    private static function getRequestSalt(string $secret, array $data, string $fields): string
+    {
+        $fields = array_filter(array_map('trim', explode(',', $fields)));
+        $result = $secret;
+        foreach ($fields as $field) {
+            $result .= $data[$field];
+        }
+        return md5($result);
+    }
+
+    /**
+     * @param string $url
+     * @param array $params
+     * @return array
+     * @throws VerstkaException
+     * @throws GuzzleException
+     */
+    private function sendRequest(string $url, array $params): array
+    {
+        $guzzleClient = new Client(['timeout' => 60.0]); //Base URI is used with relative requests // 'base_uri' => 'http://httpbin.org',
+        $response = $guzzleClient->post($url, [
+            'connect_timeout' => 3.14,
+            'headers' => [
+                'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
+            ],
+            'form_params' => $params
+        ]);
+        $result_json = $response->getBody()->getContents();
+        $code = $response->getStatusCode();
+        $result = json_decode($result_json, true);
+
+        if ($code !== 200 || json_last_error() || !isset($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
+            throw new VerstkaException(sprintf("verstka api open return %d\n%s", $code, $result_json));
+        }
+
+        return $result;
+    }
+
+    private function getVerstkaUrl(string $path): string
+    {
+        return $this->verstkaHost . $path;
     }
 
     /**
@@ -150,59 +199,6 @@ class Verstka
     }
 
     /**
-     * @param string $url
-     * @param array $params
-     * @return array
-     * @throws VerstkaException
-     * @throws GuzzleException
-     */
-    private function sendRequest(string $url, array $params): array
-    {
-        $guzzleClient = new Client(['timeout' => 60.0]); //Base URI is used with relative requests // 'base_uri' => 'http://httpbin.org',
-        $response = $guzzleClient->post($url, [
-            'connect_timeout' => 3.14,
-            'headers' => [
-                'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
-            ],
-            'form_params' => $params
-        ]);
-        $result_json = $response->getBody()->getContents();
-        $code = $response->getStatusCode();
-        $result = json_decode($result_json, true);
-
-        if ($code !== 200 || json_last_error() || !isset($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
-            throw new VerstkaException(sprintf("verstka api open return %d\n%s", $code, $result_json));
-        }
-
-        return $result;
-    }
-
-    private static function formJSON($res_code, $res_msg, $data = array())
-    {
-        return json_encode(array(
-            'rc' => $res_code,
-            'rm' => $res_msg,
-            'data' => $data
-        ), JSON_NUMERIC_CHECK);
-    }
-
-    /**
-     * @param string $secret
-     * @param array $data
-     * @param string $fields
-     * @return string
-     */
-    private static function getRequestSalt(string $secret, array $data, string $fields): string
-    {
-        $fields = array_filter(array_map('trim', explode(',', $fields)));
-        $result = $secret;
-        foreach ($fields as $field) {
-            $result .= $data[$field];
-        }
-        return md5($result);
-    }
-
-    /**
      * @param array $data
      * @throws ValidationException
      */
@@ -217,8 +213,12 @@ class Verstka
         }
     }
 
-    private function getVerstkaUrl(string $path): string
+    private static function formJSON($res_code, $res_msg, $data = array())
     {
-        return $this->verstkaHost . $path;
+        return json_encode(array(
+            'rc' => $res_code,
+            'rm' => $res_msg,
+            'data' => $data
+        ), JSON_NUMERIC_CHECK);
     }
 }
