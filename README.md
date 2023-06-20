@@ -30,10 +30,11 @@ $article = static::getDatabase()->fetchOne($sql, ['name' => $material_id]);
 $body = $is_mobile ? $article['mobile_html'] : $article['desktop_html'];
 
 $custom_fileds = [
-    'auth_user' => 'test',                                      //if You have http authorization on callback url
-    'auth_pw' => 'test',                                        //if You have http authorization on callback url
-    'fonts.css' => 'https://mydomain.com/static/vms_fonts.css', //if You use custom fonts set
-    'mobile' => true                                            //if You open mobile version of the post
+    'auth_user' => 'test',                                      //if you have http authorization on callback url
+    'auth_pw' => 'test',                                        //if you have http authorization on callback url
+    'fonts.css' => 'https://mydomain.com/static/vms_fonts.css', //if you use custom fonts set
+    'mobile' => true                                            //if you open mobile version of the post,
+    'user_id' => 123                                            //if you want to know the user who opened the editor when saving 
 ];
 ```
 for example and then just:
