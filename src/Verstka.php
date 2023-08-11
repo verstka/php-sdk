@@ -48,7 +48,7 @@ class Verstka
         $this->secretKey = getenv('verstka_secret');
         $this->verstkaHost = getenv('verstka_host');
         $this->verstkaDebug = getenv('verstka_debug') ?? false;
-        $this->imagesHost = getenv('images_host') ?? $_SERVER['HTTP_HOST'];
+        $this->imagesHost = getenv('images_host') !== false ? getenv('images_host') : $_SERVER['HTTP_HOST'];
         $this->loader = new ImageLoader();
     }
 
