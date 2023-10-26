@@ -6,6 +6,7 @@ namespace Verstka;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Verstka\Builder\VerstkaBuilderInterface;
 use Verstka\Exception\ValidationException;
 use Verstka\Exception\VerstkaException;
 use Verstka\Image\ImageLoader;
@@ -30,7 +31,7 @@ class Verstka
     /**
      * @var bool
      */
-    private $verstkaDebug;
+    private $debug;
 
     /**
      * @var string
@@ -42,13 +43,27 @@ class Verstka
      */
     private $loader;
 
-    public function __construct()
+    /**
+     * @param non-empty-string      $apiKey
+     * @param non-empty-string      $secretKey
+     * @param non-empty-string|null $imagesHost
+     * @param non-empty-string|null $verstkaHost
+     * @param bool        $verstkaDebug
+     */
+    public function __construct(
+         string $apiKey,
+         string $secretKey,
+         string $imagesHost = null,
+         string $verstkaHost = null,
+         bool   $verstkaDebug = false
+    )
     {
-        $this->apiKey = getenv('verstka_apikey');
-        $this->secretKey = getenv('verstka_secret');
-        $this->verstkaHost = getenv('verstka_host');
-        $this->verstkaDebug = getenv('verstka_debug') ?? false;
-        $this->imagesHost = getenv('images_host') !== false ? getenv('images_host') : $_SERVER['HTTP_HOST'];
+        $this->apiKey = $apiKey;
+        $this->secretKey = $secretKey;
+        $this->imagesHost = $imagesHost;
+        $this->verstkaHost = !empty($verstkaHost) ? $verstkaHost : VerstkaBuilderInterface::API_HOST;
+        $this->debug = $verstkaDebug;
+
         $this->loader = new ImageLoader();
     }
 
@@ -184,7 +199,7 @@ class Verstka
         try {
             $debug = [];
             if ($callbackResult === true) {
-                $debug = $this->loader->cleanTempFiles($imagesReady, $this->verstkaDebug);
+                $debug = $this->loader->cleanTempFiles($imagesReady, $this->debug);
             }
 
             $additional_data = [
