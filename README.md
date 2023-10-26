@@ -39,7 +39,7 @@ of Verstka create:
 ```
 putenv('verstka_apikey=...');
 putenv('verstka_secret=...');
-putenv('verstka_host=http://verstka.org');
+putenv('verstka_host=https://verstka.org');
 ```
 
 additional parameters:
