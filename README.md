@@ -169,7 +169,7 @@ Final CSS file:
 
 @font-face {
     /* font_name: 'Formular'; */
-        /* font_style_name: 'Light'; */  
+    /* font_style_name: 'Light'; */  
     font-family: 'formular';
     src: url (data: application / font-woff2; charset = utf-8; base64, KJHGKJHG...) format ('woff2'),
          url (data: application / font-woff; charset = utf-8; base64, KJHGKJHGJ...) format ('woff');
