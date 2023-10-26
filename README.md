@@ -1,5 +1,7 @@
 # Verstka Editor PHP-SDK
 
+First, You need to require package by composer with composer require verstka/php-sdk
+
 ## Initialization via config
 
 ```php
@@ -24,8 +26,7 @@ $verstkaEditor  = $verstkaBuilder->build();
 
 ```
 
-First, You need to require package by composer with ```composer require verstka/php-sdk```, then set ```.env``` file in
-the root of your project with settings listed below:
+set ```.env``` file in the root of your project with settings listed below:
 
 ```
 verstka_apikey = "..."
