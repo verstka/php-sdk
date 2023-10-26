@@ -46,7 +46,8 @@ putenv('verstka_host=https://verstka.org');
 additional parameters:
 
 ```
-images_host - in case if you use relative images and storage host different from callback url host
+images_host - in case if you use relative images
+and storage host different from callback url host
 ```
 
 ## Editing an article
