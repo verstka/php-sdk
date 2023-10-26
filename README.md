@@ -89,16 +89,15 @@ where
 function clientCallback(array $data): bool
 {
 /*
-$data will contain array:
-[
-    'article_body' =>  ... //html of article to save
-    'custom_fields' => ... //json with additional staff
-    'is_mobile' =>     ... //is mobile version of article
-    'material_id' =>   ... //article id
-    'user_id' =>       ... //user id
-    'images' =>        ... //array of used images
-]
-
+  $data will contain array:
+  [
+      'article_body' =>  ... //html of article to save
+      'custom_fields' => ... //json with additional staff
+      'is_mobile' =>     ... //is mobile version of article
+      'material_id' =>   ... //article id
+      'user_id' =>       ... //user id
+      'images' =>        ... //array of used images
+  ]
 */
 
     //file_put_contents('/tmp/client_callback.log', print_r($data, true));
