@@ -1,58 +1,29 @@
-# Verstka Editor PHP-SDK
+## Setting up
 
-First, You need to require package by composer with composer require verstka/php-sdk
-
-## Initialization via config
-
-```php
-$verstkaBuilder = new \Verstka\Builder\VerstkaConfigBuilder(
-    'API_KEY_FRsGhsgFGSG45d34',
-    'SECRET_KEY_32ff2f23f32f',
-    'https://aws-host.toexternal_storage.com',  // Optional, image storage host
-    'https://verstka.org',                      // Optional, host api Verstka
-    true,                                       // Optional, Debug mode
-  );
-                          
-$verstkaEditor  = $verstkaBuilder->build();
+First, You need to require package by composer with ```composer require verstka/php-sdk```, then set ```.env``` file in the root of your project with settings listed below:
 
 ```
-
-## Initialization with ENV
-
-```php
-$verstkaBuilder = new \Verstka\Builder\VerstkaEnvBuilder();
-                          
-$verstkaEditor  = $verstkaBuilder->build();
-
-```
-
-set ```.env``` file in the root of your project with settings listed below:
-
-```
+verstka_host = "https://verstka.org"
 verstka_apikey = "..."
 verstka_secret = "..."
-verstka_host = "https://verstka.org"
 ```
 
-if you don't use vlucas/phpdotenv or yiithings/yii2-dotenv or something like that just set environment before new object
-of Verstka create:
+if you don't use vlucas/phpdotenv or yiithings/yii2-dotenv or something like that just set environment before new object of Verstka create:
 
 ```
+putenv('verstka_host=http://verstka.org');
 putenv('verstka_apikey=...');
 putenv('verstka_secret=...');
-putenv('verstka_host=https://verstka.org');
 ```
 
 additional parameters:
-
 ```
-images_host - in case if you use relative images
-and storage host different from callback url host
+images_host - in case if you use relative images and storage host different from callback url host
 ```
 
 ## Editing an article
 
-```php
+```
 $sql = 'SELECT * FROM t_materials WHERE name = :name';
 $article = static::getDatabase()->fetchOne($sql, ['name' => $material_id]);
 
@@ -66,38 +37,33 @@ $custom_fileds = [
     'user_id' => 123                                            //if you want to know the user who opened the editor when saving 
 ];
 ```
-
 for example and then just:
-
-```php
-/// ....
-$verstkaEditor  = $verstkaBuilder->build();
-$verstka_url = $verstkaEditor->open($material_id, $body, $is_mobile, 'https://mydomain.com/verstka/save', $custom_fileds);
+```
+$verstka = new Verstka();
+$verstka_url = $verstka->open($material_id, $body, $is_mobile, 'https://mydomain.com/verstka/save', $custom_fileds);
 ```
 
 ## Saving an article
 
-```php
-///  ....
-$verstkaEditor  = $verstkaBuilder->build();
-return $verstkaEditor->save($client_callback_function, $data);
 ```
-
+$verstka = new Verstka();
+return $verstka->save($client_callback_function, $data);
+```
 where
-
-```php
+```
 function clientCallback(array $data): bool
 {
 /*
-  $data will contain array:
-  [
-      'article_body' =>  ... //html of article to save
-      'custom_fields' => ... //json with additional staff
-      'is_mobile' =>     ... //is mobile version of article
-      'material_id' =>   ... //article id
-      'user_id' =>       ... //user id
-      'images' =>        ... //array of used images
-  ]
+$data will contain array:
+[
+    'article_body' =>  ... //html of article to save
+    'custom_fields' => ... //json with additional staff
+    'is_mobile' =>     ... //is mobile version of article
+    'material_id' =>   ... //article id
+    'user_id' =>       ... //user id
+    'images' =>        ... //array of used images
+]
+
 */
 
     //file_put_contents('/tmp/client_callback.log', print_r($data, true));
@@ -137,14 +103,11 @@ function clientCallback(array $data): bool
 
 ## Use your own fonts
 
-You need to collect a CSS file with certain comments and fonts sewn into base64, and then they will automatically appear
-in the Layout.
+You need to collect a CSS file with certain comments and fonts sewn into base64, and then they will automatically appear in the Layout.
 default url /vms_fonts.css
 
-At the top of the CSS file you need to specify the default font in the comments, which will be set when creating a new
-text object.
-
-```css
+At the top of the CSS file you need to specify the default font in the comments, which will be set when creating a new text object.
+```
 /* default_font_family: 'formular'; */
 /* default_font_weight: 400; */
 /* default_font_size: 16px; */
@@ -152,56 +115,51 @@ text object.
 ```
 
 Further, for each `@ font-face` it is necessary to register comments with the name of the font and its style.
-
-```css
-/* font_name: 'Formular'; */
-/* font_style_name: 'Light'; */
+```
+   /* font_name: 'Formular'; */
+   /* font_style_name: 'Light'; */
 ```
 
 Final CSS file:
-
-```css
+```
 /* default_font_family: 'formular'; */
 /* default_font_weight: 400; */
 /* default_font_size: 16px; */
 /* default_line_height: 24px; */
 
-@font-face {
-    /* font_name: 'Formular'; */
-    /* font_style_name: 'Light'; */  
-    font-family: 'formular';
-    src: url (data: application / font-woff2; charset = utf-8; base64, KJHGKJHG...) format ('woff2'),
-         url (data: application / font-woff; charset = utf-8; base64, KJHGKJHGJ...) format ('woff');
-    font-weight: 300;
-    font-style: normal;
+@ font-face {
+   /* font_name: 'Formular'; */
+   /* font_style_name: 'Light'; */
+    font-family: 'formular';
+    src: url (data: application / font-woff2; charset = utf-8; base64, KJHGKJHGJHG) format ('woff2'),
+         url (data: application / font-woff; charset = utf-8; base64, KJHGKJHGJHG) format ('woff');
+    font-weight: 300;
+    font-style: normal;
 }
 
-@font-face {
-    /* font_name: 'Formular'; */
-    /* font_style_name: 'Regular; */
-    font-family: 'formular';
-    src: url (data: application / font-woff2; charset = utf-8; base64, AAFEWDDWEDD...) format ('woff2'),
-         url (data: application / font-woff; charset = utf-8; base64, AAFEWDDWEDD...) format ('woff');
-    font-weight: 400;
-    font-style: normal;
+@ font-face {
+   /* font_name: 'Formular'; */
+   /* font_style_name: 'Regular; */
+    font-family: 'formular';
+    src: url (data: application / font-woff2; charset = utf-8; base64, KJHGKJHGJHG) format ('woff2'),
+         url (data: application / font-woff; charset = utf-8; base64, KJHGKJHGJHG) format ('woff');
+    font-weight: 400;
+    font-style: normal;
 }
 ```
 
 ## Displaying Articles
-
 The HTML code of the article should be accompanied by the connection of the script:
 
-```html
-
+```
 <link href="//go.verstka.org/critical.css" rel="stylesheet">
 
-<script type="text / javascript">
+<script type = "text / javascript">
     window.onVMSAPIReady = function (api) {
         api.Article.enable ({
             display_mode: 'default'
         });
     };
-
 </script>
 <script src="//go.verstka.org/api.js" async type="text/javascript"></script>
 ```
