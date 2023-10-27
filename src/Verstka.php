@@ -2,70 +2,223 @@
 
 declare(strict_types=1);
 
-
 namespace Verstka;
 
-use Verstka\EditorApi\Builder\VerstkaEnvBuilder;
-use Verstka\EditorApi\Material\MaterialDataInterface;
-use Verstka\EditorApi\Material\MaterialSaverInterface;
-use Verstka\EditorApi\VerstkaEditorInterface;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use Verstka\Exception\ValidationException;
+use Verstka\Exception\VerstkaException;
+use Verstka\Image\ImageLoader;
 
-/**
- * @deprecated  The class will be removed in the future
- *
- * Use the interface implementation {@see \Verstka\EditorApi\VerstkaBuilderInterface}
- *
- * @see         \Verstka\EditorApi\Builder\VerstkaConfigBuilder
- * @see         \Verstka\EditorApi\Builder\VerstkaEnvBuilder
- *
- * @final
- */
-class Verstka implements VerstkaEditorInterface
+class Verstka
 {
     /**
-     * @var VerstkaEditorInterface
+     * @var string
      */
-    private $verstkaEditor;
+    private $apiKey;
+
+    /**
+     * @var string
+     */
+    private $secretKey;
+
+    /**
+     * @var string
+     */
+    private $verstkaHost;
+
+    /**
+     * @var bool
+     */
+    private $verstkaDebug;
+
+    /**
+     * @var string
+     */
+    private $imagesHost;
+
+    /**
+     * @var ImageLoader
+     */
+    private $loader;
 
     public function __construct()
     {
-        $this->verstkaEditor = (new VerstkaEnvBuilder())->build();
+        $this->apiKey = getenv('verstka_apikey');
+        $this->secretKey = getenv('verstka_secret');
+        $this->verstkaHost = getenv('verstka_host');
+        $this->verstkaDebug = getenv('verstka_debug') ?? false;
+        $this->imagesHost = getenv('images_host') !== false ? getenv('images_host') : $_SERVER['HTTP_HOST'];
+        $this->loader = new ImageLoader();
     }
 
     /**
-     * @param string      $materialId
+     * @param string $name
      * @param string|null $articleBody
-     * @param bool        $isMobile
-     * @param string      $clientSaveUrl
-     * @param array       $customFields
-     *
+     * @param bool $isMobile
+     * @param string $clientSaveUrl
+     * @param array $customFields
+     * @return string - verstka edit url
+     * @throws GuzzleException
+     * @throws VerstkaException
+     */
+    public function open(string $material_id, ?string $articleBody, bool $isMobile, string $clientSaveUrl, array $customFields = []): string
+    {
+        $customFields = array_merge([
+            'auth_user' => 'test',        //if You have http authorization on callback url
+            'auth_pw' => 'test',          //if You have http authorization on callback url
+            'mobile' => $isMobile,       //if You edit mobile version of article
+            'fonts.css' => '/static/vms_fonts.css', //if You use custom fonts set
+            'version' => 1.0
+        ], $customFields);
+
+        $params = [
+            'user_id' => $customFields['user_id'] ?? ($_SERVER['PHP_AUTH_USER'] ?? 1),
+            'user_ip' => $_SERVER['REMOTE_ADDR'],
+            'material_id' => $material_id,
+            'html_body' => $articleBody,
+            'callback_url' => $clientSaveUrl,
+            'host_name' => $this->imagesHost,
+            'api-key' => $this->apiKey,
+            'custom_fields' => json_encode($customFields)
+        ];
+        $params['callback_sign'] = self::getRequestSalt($this->secretKey, $params, 'api-key, material_id, user_id, callback_url');
+
+        $result = $this->sendRequest($this->getVerstkaUrl('/1/open'), $params);
+        if (empty($result['data']) && empty($result['data']['edit_url'])) {
+            throw new VerstkaException('Could not get url for editing');
+        }
+
+        return $result['data']['edit_url'];
+    }
+
+    /**
+     * @param string $secret
+     * @param array $data
+     * @param string $fields
      * @return string
      */
-    public function open(
-        string $materialId,
-        ?string $articleBody,
-        bool $isMobile,
-        string $clientSaveUrl,
-        array $customFields = []
-    ): string {
-        return $this->verstkaEditor->open($materialId, $articleBody, $isMobile, $clientSaveUrl, $customFields);
+    private static function getRequestSalt(string $secret, array $data, string $fields): string
+    {
+        $fields = array_filter(array_map('trim', explode(',', $fields)));
+        $result = $secret;
+        foreach ($fields as $field) {
+            $result .= $data[$field];
+        }
+        return md5($result);
     }
 
     /**
-     * @param callable|MaterialSaverInterface $clientSaveHandler
-     * @param array{
-     *    html_body: string,
-     *    download_url: string,
-     *    session_id: string,
-     *    custom_fields: string,
-     *    material_id: string,
-     *    user_id: string,
-     * }|MaterialDataInterface                $materialData
-     *
+     * @param string $url
+     * @param array $params
+     * @return array
+     * @throws VerstkaException
+     * @throws GuzzleException
+     */
+    private function sendRequest(string $url, array $params): array
+    {
+        $guzzleClient = new Client(['timeout' => 60.0]); //Base URI is used with relative requests // 'base_uri' => 'http://httpbin.org',
+        $response = $guzzleClient->post($url, [
+            'connect_timeout' => 3.14,
+            'headers' => [
+                'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
+            ],
+            'form_params' => $params
+        ]);
+        $result_json = $response->getBody()->getContents();
+        $code = $response->getStatusCode();
+        $result = json_decode($result_json, true);
+
+        if ($code !== 200 || json_last_error() || !isset($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
+            throw new VerstkaException(sprintf("verstka api open return %d\n%s", $code, $result_json));
+        }
+
+        return $result;
+    }
+
+    private function getVerstkaUrl(string $path): string
+    {
+        return $this->verstkaHost . $path;
+    }
+
+    /**
+     * @param callable $clientCallback
+     * @param array $data
      * @return string - encoded json response from verstka
      */
-    public function save($clientSaveHandler, $materialData): string
+    public function save(callable $clientCallback, array $data): string
     {
-        return $this->verstkaEditor->save($clientSaveHandler, $materialData);
+        set_time_limit(0);
+        try {
+            $this->validateArticleData($data);
+
+//          Article params:
+            $article_body = $data['html_body'];
+            $verstkaDownloadUrl = $data['download_url'];
+            $customFields = json_decode($data['custom_fields'], true);
+            $isMobile = isset($customFields['mobile']) && $customFields['mobile'] === true;
+            $material_id = $data['material_id'];
+            $user_id = $data['user_id'];
+
+            //Request list of images
+            $verstkaResponse = $this->sendRequest($verstkaDownloadUrl, [
+                'api-key' => $this->apiKey,
+                'unixtime' => time()
+            ]);
+
+            [$imagesReady, $lackingImages] = $this->loader->load($verstkaDownloadUrl, $verstkaResponse['data']);
+
+        } catch (\Throwable $e) {
+            return static::formJSON($e->getCode(), $e->getMessage(), $data);
+        }
+
+        $callbackResult = call_user_func($clientCallback, [
+            'article_body' => $article_body,
+            'custom_fields' => $customFields,
+            'is_mobile' => $isMobile,
+            'material_id' => $material_id,
+            'user_id' => $user_id,
+            'images' => $imagesReady
+        ]);
+
+        try {
+            $debug = [];
+            if ($callbackResult === true) {
+                $debug = $this->loader->cleanTempFiles($imagesReady, $this->verstkaDebug);
+            }
+
+            $additional_data = [
+                'debug' => $debug,
+                'custom_fields' => $customFields,
+                'lacking_images' => $lackingImages
+            ];
+            return static::formJSON(1, 'save sucessfull', $additional_data);
+        } catch (\Throwable $e) {
+            return static::formJSON($e->getCode(), $e->getMessage(), $data);
+        }
+    }
+
+    /**
+     * @param array $data
+     * @throws ValidationException
+     */
+    private function validateArticleData(array $data): void
+    {
+        $expectCallbackSign = static::getRequestSalt($this->secretKey, $data, 'session_id, user_id, material_id, download_url');
+        if (
+            empty($data['download_url'])
+            || $expectCallbackSign !== $data['callback_sign']
+        ) {
+            throw new ValidationException('invalid callback sign');
+        }
+    }
+
+    private static function formJSON($res_code, $res_msg, $data = array())
+    {
+        return json_encode(array(
+            'rc' => $res_code,
+            'rm' => $res_msg,
+            'data' => $data
+        ), JSON_NUMERIC_CHECK);
     }
 }
