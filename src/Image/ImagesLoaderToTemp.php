@@ -1,26 +1,66 @@
 <?php
 
-namespace Verstka\Image;
+declare(strict_types=1);
+
+namespace Verstka\EditorApi\Image;
 
 use GuzzleHttp\Client as Guzzle;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Response;
 
-class ImageLoader
+/**
+ * The class loads images into a local temp folder
+ * and gives the names of files and their temporary paths
+ */
+final class ImagesLoaderToTemp implements ImagesLoaderInterface
 {
     /**
-     * @param string $url
-     * @param array $images
+     * Loaded images to temp dir
+     *
+     * @var array<string,string>
+     */
+    private $loadedImages;
+
+    /**
+     * Loaded images to temp dir
+     *
+     * @var array<array-key,string>
+     */
+    private $lackingImages;
+
+
+    /**
+     * @inheritDoc
+     * @return array
+     */
+    public function getLoadedImages(): array
+    {
+        return $this->loadedImages;
+    }
+
+
+    /***
+     * @inheritDoc
+     * @return array<array-key,string>
+     */
+    public function getNotLoadedImages(): array
+    {
+        return $this->lackingImages;
+    }
+
+    /**
+     * @param non-empty-string $imagesDirectoryUrl
+     * @param array<string>    $imageNames
      *
      * @return array
      */
-    public function load(string $url, array $images): array
+    public function load(string $imagesDirectoryUrl, array $imageNames): array
     {
         $imagesForDownload = [];
-        foreach ($images as $imageName) {
+        foreach ($imageNames as $imageName) {
             $imagesForDownload[$imageName] = [
-                'download_from' => sprintf('%s/%s', $url, $imageName),
+                'download_from' => sprintf('%s/%s', $imagesDirectoryUrl, $imageName),
                 'download_to' => $this->generateTempFileName($imageName)
             ];
         }
@@ -38,8 +78,8 @@ class ImageLoader
                 $imagesReady[$imageName] = $imageData['download_to'];
             }
         }
-
-        return [$imagesReady, $lackingImages];
+        $this->loadedImages = $imagesReady;
+        $this->lackingImages = $lackingImages;
     }
 
     /**
@@ -53,14 +93,14 @@ class ImageLoader
     }
 
     /**
-     * @param $imagesForDownload
+     * @param array $imagesForDownload
      *
      * @return array
      */
-    private function downloadImages($imagesForDownload): array
+    private function downloadImages(array $imagesForDownload): array
     {
         $client = new Guzzle(['connect_timeout' => 3.14, 'timeout' => 180.0]);
-        $requestPromises = function ($imagesForDownload) use ($client) {
+        $requestPromises = function (array $imagesForDownload) use ($client) {
             foreach ($imagesForDownload as $imageName => $imageData) {
                 if (isset($imageData['is_lacking']) && $imageData['is_lacking'] === false) {
                     continue; // Skip successful ones on retry
@@ -103,22 +143,14 @@ class ImageLoader
     }
 
     /**
-     * @param array $images
-     * @param bool $debugInfo
-     *
-     * @return null|array
+     * Remove temp loaded images
      */
-    public function cleanTempFiles(array $images, bool $debugInfo = false): ?array
+    public function __destruct()
     {
-        $debug = [];
-        foreach ($images as $image => $imageTempFile) {
-            // clean temp folder if callback successfull
+        foreach ($this->loadedImages as $imageTempFile) {
             if (is_readable($imageTempFile)) {
                 unlink($imageTempFile);
-                $debug[] = $imageTempFile;
             }
         }
-
-        return $debugInfo ? $debug : null;
     }
 }

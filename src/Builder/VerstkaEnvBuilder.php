@@ -2,17 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Verstka\Builder;
+namespace Verstka\EditorApi\Builder;
 
-use Verstka\Verstka;
+use Verstka\EditorApi\Exception\ValidationException;
+use Verstka\EditorApi\VerstkaEditor;
+use Verstka\EditorApi\VerstkaEditorInterface;
+
 
 class VerstkaEnvBuilder implements VerstkaBuilderInterface
 {
 
     /**
-     * @return Verstka
+     * @return VerstkaEditorInterface
+     * @throws ValidationException
      */
-    public function build(): Verstka
+    public function build(): VerstkaEditorInterface
     {
         assert(
             !empty(getenv('verstka_apikey'))
@@ -24,12 +28,20 @@ class VerstkaEnvBuilder implements VerstkaBuilderInterface
 
         $verstkaHost = getenv('verstka_host');
         if (!is_string($verstkaHost) || empty($verstkaHost)) {
-            $verstkaHost = VerstkaBuilderInterface::API_HOST;
+            $verstkaHost = VerstkaEditorInterface::API_HOST;
         }
-        return new Verstka(
+
+        $imagesHost = getenv('images_host');
+        if (empty($imagesHost) || !is_string($imagesHost)) {
+            if (!isset($_SERVER['HTTP_HOST'])) {
+                throw new ValidationException('Invalid images host!');
+            }
+            $imagesHost = $_SERVER['HTTP_HOST'];
+        }
+        return new VerstkaEditor(
             getenv('verstka_apikey'),
             getenv('verstka_secret'),
-            getenv('images_host') !== false ? getenv('images_host') : $_SERVER['HTTP_HOST'],
+            $imagesHost,
             $verstkaHost,
             getenv('verstka_debug') ?? false
         );

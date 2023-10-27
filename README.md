@@ -5,7 +5,7 @@ First, You need to require package by composer with composer require verstka/php
 ## Initialization via config
 
 ```php
-$verstkaBuilder = new \Verstka\Builder\VerstkaConfigBuilder(
+$verstkaBuilder = new \Verstka\EditorApi\Builder\VerstkaConfigBuilder(
     'API_KEY_FRsGhsgFGSG45d34',
     'SECRET_KEY_32ff2f23f32f',
     'https://aws-host.toexternal_storage.com',  // Optional, image storage host
@@ -20,7 +20,7 @@ $verstkaEditor  = $verstkaBuilder->build();
 ## Initialization with ENV
 
 ```php
-$verstkaBuilder = new \Verstka\Builder\VerstkaEnvBuilder();
+$verstkaBuilder = new \Verstka\EditorApi\Builder\VerstkaEnvBuilder();
                           
 $verstkaEditor  = $verstkaBuilder->build();
 
@@ -77,38 +77,43 @@ $verstka_url = $verstkaEditor->open($material_id, $body, $is_mobile, 'https://my
 
 ## Saving an article
 
+Save with `MaterialSaverInterface` implementation
+
+And check out the interface `\Verstka\EditorApi\Image\ImagesLoaderInterface`, which loads images of material into your
+storage.
+
 ```php
 ///  ....
-$verstkaEditor  = $verstkaBuilder->build();
-return $verstkaEditor->save($client_callback_function, $data);
+$verstkaEditor = $verstkaBuilder->build();
+$materialSaver = new MaterialSaver(); // your saver \Verstka\EditorApi\Material\MaterialSaverInterface
+
+// Prepare data
+$data = new \Verstka\EditorApi\Material\MaterialData($arrayData); // Material data from POST
+
+return $verstkaEditor->save($materialSaver, $data);
 ```
 
-where
+------------------------------------------------------
+Saving an article with old Callback api
 
 ```php
-function clientCallback(array $data): bool
-{
-/*
-  $data will contain array:
-  [
-      'article_body' =>  ... //html of article to save
-      'custom_fields' => ... //json with additional staff
-      'is_mobile' =>     ... //is mobile version of article
-      'material_id' =>   ... //article id
-      'user_id' =>       ... //user id
-      'images' =>        ... //array of used images
-  ]
-*/
+///  ....
+$verstkaEditor = $verstkaBuilder->build();
+$materialSaver = new MaterialSaver(); // your saver \Verstka\EditorApi\Material\MaterialSaverInterface
 
-    //file_put_contents('/tmp/client_callback.log', print_r($data, true));
+// Prepare data
+$data = new \Verstka\EditorApi\Material\MaterialData($arrayData); // Material data from POST
+
+return $verstkaEditor->save(function(array|\Verstka\EditorApi\Material\MaterialDataInterface $data): bool
+{
 
     $is_fail = false;
     $article_body = $data['article_body'];
     $article_static_dir_rel = sprintf('/upload/verstka/%s%s', $data['is_mobile'] ? 'm_':'', $data['material_id']);
     $article_static_dir_abs = sprintf('%s%s%s%s', WEBROOT, DIRECTORY_SEPARATOR, '/public/', $article_static_dir_rel);
     @mkdir($article_static_dir_abs,  0777, true);
-    foreach ($data['images'] as $image_name => $image_file) {
-        $is_renamed = rename($image_file, sprintf('%s/%s', $article_static_dir_abs, $image_name));
+    foreach ($data['images'] as $image_name => $imageTmpFilePath) {
+        $is_renamed = rename($imageTmpFilePath, sprintf('%s/%s', $article_static_dir_abs, $image_name));
         $is_fail = $is_fail || !$is_renamed;
         $html_image_name_old = sprintf('/vms_images/%s', $image_name);
         $html_image_name_new = sprintf('%s/%s', $article_static_dir_rel, $image_name);
@@ -132,7 +137,8 @@ function clientCallback(array $data): bool
     $is_fail = $is_fail || !$saved;
 
     return !$is_fail;
-}
+}, $data);
+
 ```
 
 ## Use your own fonts
@@ -168,10 +174,13 @@ Final CSS file:
 
 @font-face {
     /* font_name: 'Formular'; */
-    /* font_style_name: 'Light'; */  
+    /* font_style_name: 'Light'; */
     font-family: 'formular';
-    src: url (data: application / font-woff2; charset = utf-8; base64, KJHGKJHG...) format ('woff2'),
-         url (data: application / font-woff; charset = utf-8; base64, KJHGKJHGJ...) format ('woff');
+    src: url (data: application / font-woff2;
+    charset = utf-8;
+    base64, KJHGKJHG . . .) format ('woff2'), url (data: application / font-woff;
+    charset = utf-8;
+    base64, KJHGKJHGJ . . .) format ('woff');
     font-weight: 300;
     font-style: normal;
 }
@@ -180,8 +189,11 @@ Final CSS file:
     /* font_name: 'Formular'; */
     /* font_style_name: 'Regular; */
     font-family: 'formular';
-    src: url (data: application / font-woff2; charset = utf-8; base64, AAFEWDDWEDD...) format ('woff2'),
-         url (data: application / font-woff; charset = utf-8; base64, AAFEWDDWEDD...) format ('woff');
+    src: url (data: application / font-woff2;
+    charset = utf-8;
+    base64, AAFEWDDWEDD . . .) format ('woff2'), url (data: application / font-woff;
+    charset = utf-8;
+    base64, AAFEWDDWEDD . . .) format ('woff');
     font-weight: 400;
     font-style: normal;
 }
@@ -201,6 +213,10 @@ The HTML code of the article should be accompanied by the connection of the scri
             display_mode: 'default'
         });
     };
+
+
+
+
 
 </script>
 <script src="//go.verstka.org/api.js" async type="text/javascript"></script>
