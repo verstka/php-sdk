@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Verstka\Builder;
+namespace Verstka\EditorApi\Builder;
 
-use Verstka\Verstka;
+use Verstka\EditorApi\VerstkaEditorInterface;
+
 
 interface VerstkaBuilderInterface
 {
-    const API_HOST = 'https://verstka.org';
-
     /**
-     * @return Verstka
+     * @return VerstkaEditorInterface
      */
-    public function build(): Verstka;
+    public function build(): VerstkaEditorInterface;
 }

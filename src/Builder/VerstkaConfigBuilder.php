@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Verstka\Builder;
+namespace Verstka\EditorApi\Builder;
 
-use Verstka\Exception\ValidationException;
-use Verstka\Verstka;
+use Verstka\EditorApi\VerstkaEditor;
+use Verstka\EditorApi\VerstkaEditorInterface;
+use Verstka\EditorApi\Exception\ValidationException;
+
 
 class VerstkaConfigBuilder implements VerstkaBuilderInterface
 {
@@ -54,7 +56,7 @@ class VerstkaConfigBuilder implements VerstkaBuilderInterface
         $this->apiKey = $apiKey;
         $this->secretKey = $secretKey;
         $this->imagesHost = $imagesHost;
-        $this->verstkaHost = !empty($verstkaHost) ? $verstkaHost : 'http://verstka.org';
+        $this->verstkaHost = !empty($verstkaHost) ? $verstkaHost : VerstkaEditorInterface::API_HOST;
         $this->debug = $debug;
 
         if ($this->apiKey === '') {
@@ -66,11 +68,11 @@ class VerstkaConfigBuilder implements VerstkaBuilderInterface
     }
 
     /**
-     * @return Verstka
+     * @return VerstkaEditorInterface
      */
-    public function build(): Verstka
+    public function build(): VerstkaEditorInterface
     {
-        return new Verstka(
+        return new VerstkaEditor(
             $this->apiKey,
             $this->secretKey,
             $this->imagesHost ?? $_SERVER['HTTP_HOST'],

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Verstka\Exception;
+namespace Verstka\EditorApi\Exception;
 
 class ValidationException extends VerstkaException
 {
