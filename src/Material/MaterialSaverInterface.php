@@ -7,7 +7,6 @@ namespace Verstka\EditorApi\Material;
 use Verstka\EditorApi\Exception\VerstkaException;
 use Verstka\EditorApi\Image\ImagesLoaderInterface;
 
-
 interface MaterialSaverInterface
 {
     /**

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Verstka\EditorApi\Builder;
 
+use Verstka\EditorApi\Exception\ValidationException;
 use Verstka\EditorApi\VerstkaEditor;
 use Verstka\EditorApi\VerstkaEditorInterface;
-use Verstka\EditorApi\Exception\ValidationException;
-
 
 class VerstkaConfigBuilder implements VerstkaBuilderInterface
 {
@@ -32,16 +31,16 @@ class VerstkaConfigBuilder implements VerstkaBuilderInterface
     private $debug;
 
     /**
-     * @var string|null
+     * @var null|string
      */
     private $imagesHost;
 
     /**
-     * @param non-empty-string       $apiKey
-     * @param non-empty-string       $secretKey
-     * @param non-empty-string |null $verstkaHost
-     * @param bool                   $debug
-     * @param non-empty-string|null  $imagesHost
+     * @param non-empty-string      $apiKey
+     * @param non-empty-string      $secretKey
+     * @param null|non-empty-string $verstkaHost
+     * @param bool                  $debug
+     * @param null|non-empty-string $imagesHost
      *
      * @throws ValidationException
      */
@@ -51,7 +50,6 @@ class VerstkaConfigBuilder implements VerstkaBuilderInterface
         string $imagesHost = null,
         string $verstkaHost = null,
         bool $debug = false
-
     ) {
         $this->apiKey = $apiKey;
         $this->secretKey = $secretKey;

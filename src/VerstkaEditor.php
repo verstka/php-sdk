@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Verstka\EditorApi;
 
-
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Throwable;
@@ -15,7 +14,6 @@ use Verstka\EditorApi\Material\MaterialData;
 use Verstka\EditorApi\Material\MaterialDataInterface;
 use Verstka\EditorApi\Material\MaterialSaverCallback;
 use Verstka\EditorApi\Material\MaterialSaverInterface;
-
 
 class VerstkaEditor implements VerstkaEditorInterface
 {
@@ -44,12 +42,11 @@ class VerstkaEditor implements VerstkaEditorInterface
      */
     private $imagesHost;
 
-
     /**
      * @param non-empty-string      $apiKey
      * @param non-empty-string      $secretKey
-     * @param non-empty-string|null $imagesHost
-     * @param non-empty-string|null $verstkaHost
+     * @param null|non-empty-string $imagesHost
+     * @param null|non-empty-string $verstkaHost
      * @param bool                  $verstkaDebug
      */
     public function __construct(
@@ -68,14 +65,15 @@ class VerstkaEditor implements VerstkaEditorInterface
 
     /**
      * @param string      $materialId
-     * @param string|null $articleBody
+     * @param null|string $articleBody
      * @param bool        $isMobile
      * @param string      $clientSaveUrl
      * @param array       $customFields
      *
-     * @return string - verstka edit url
      * @throws GuzzleException
      * @throws VerstkaException
+     *
+     * @return string - verstka edit url
      */
     public function open(
         string $materialId,
@@ -163,6 +161,7 @@ class VerstkaEditor implements VerstkaEditorInterface
             $clientSaveHandler->save($materialData);
 
             $debug = [];
+
             /**  @todo delete, please check
              * @see ImagesLoaderToTemp::__destruct()
              * if ($callbackResult === true) {
@@ -179,7 +178,6 @@ class VerstkaEditor implements VerstkaEditorInterface
         }
     }
 
-
     /**
      * @param string $secret
      * @param array  $data
@@ -194,6 +192,7 @@ class VerstkaEditor implements VerstkaEditorInterface
         foreach ($fields as $field) {
             $result .= $data[$field];
         }
+
         return md5($result);
     }
 
@@ -201,13 +200,15 @@ class VerstkaEditor implements VerstkaEditorInterface
      * @param string $url
      * @param array  $params
      *
-     * @return array
      * @throws VerstkaException
      * @throws GuzzleException
+     *
+     * @return array
      */
     private function sendRequest(string $url, array $params): array
     {
-        $guzzleClient = new Client(['timeout' => 60.0]
+        $guzzleClient = new Client(
+            ['timeout' => 60.0]
         ); //Base URI is used with relative requests // 'base_uri' => 'http://httpbin.org',
         $response = $guzzleClient->post($url, [
             'connect_timeout' => 3.14,
@@ -221,7 +222,7 @@ class VerstkaEditor implements VerstkaEditorInterface
         $result = json_decode($result_json, true);
 
         if ($code !== 200 || json_last_error(
-            ) || !isset($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
+        ) || !isset($result['data']) || empty($result['rc']) || $result['rc'] !== 1) {
             throw new VerstkaException(sprintf("verstka api open return %d\n%s", $code, $result_json));
         }
 
@@ -237,7 +238,6 @@ class VerstkaEditor implements VerstkaEditorInterface
     {
         return $this->verstkaHost . $path;
     }
-
 
     /**
      * @param array $data
@@ -259,7 +259,7 @@ class VerstkaEditor implements VerstkaEditorInterface
         }
     }
 
-    private static function formJSON($res_code, $res_msg, $data = array())
+    private static function formJSON($res_code, $res_msg, $data = [])
     {
         return json_encode(
             [

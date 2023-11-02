@@ -6,7 +6,6 @@ namespace Verstka\EditorApi\Builder;
 
 use Verstka\EditorApi\VerstkaEditorInterface;
 
-
 interface VerstkaBuilderInterface
 {
     /**

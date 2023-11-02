@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Verstka\EditorApi\Material;
 
-
 final class MaterialData implements MaterialDataInterface
 {
     /**
@@ -45,7 +44,7 @@ final class MaterialData implements MaterialDataInterface
      */
     public function getMaterialId(): string
     {
-        return (string)$this->data['material_id'];
+        return (string) $this->data['material_id'];
     }
 
     /**
@@ -77,7 +76,7 @@ final class MaterialData implements MaterialDataInterface
      */
     public function getUserId(): string
     {
-        return (string)$this->data['user_id'];
+        return (string) $this->data['user_id'];
     }
 
     /**
@@ -85,9 +84,8 @@ final class MaterialData implements MaterialDataInterface
      */
     public function getSessionId(): string
     {
-        return (string)$this->data['session_id'];
+        return (string) $this->data['session_id'];
     }
-
 
     public function offsetExists($offset): bool
     {

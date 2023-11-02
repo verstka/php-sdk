@@ -8,21 +8,19 @@ use Verstka\EditorApi\Exception\ValidationException;
 use Verstka\EditorApi\VerstkaEditor;
 use Verstka\EditorApi\VerstkaEditorInterface;
 
-
 class VerstkaEnvBuilder implements VerstkaBuilderInterface
 {
-
     /**
-     * @return VerstkaEditorInterface
      * @throws ValidationException
+     *
+     * @return VerstkaEditorInterface
      */
     public function build(): VerstkaEditorInterface
     {
         assert(
             !empty(getenv('verstka_apikey'))
             && !empty(getenv('verstka_secret'))
-            && !empty(getenv('verstka_host'))
-            ,
+            && !empty(getenv('verstka_host')),
             'Invalid Verstka configuration from ENV!'
         );
 
@@ -38,6 +36,7 @@ class VerstkaEnvBuilder implements VerstkaBuilderInterface
             }
             $imagesHost = $_SERVER['HTTP_HOST'];
         }
+
         return new VerstkaEditor(
             getenv('verstka_apikey'),
             getenv('verstka_secret'),

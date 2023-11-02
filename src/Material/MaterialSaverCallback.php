@@ -8,11 +8,10 @@ use Closure;
 use Verstka\EditorApi\Image\ImagesLoaderInterface;
 use Verstka\EditorApi\Image\ImagesLoaderToTemp;
 
-
 final class MaterialSaverCallback implements MaterialSaverInterface
 {
     /**
-     * @var callable|Closure(array|\ArrayAccess $data):int
+     * @var callable|Closure(array|\ArrayAccess):int
      */
     private $saveHandlerCallback;
 

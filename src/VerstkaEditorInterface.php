@@ -10,16 +10,16 @@ use Verstka\EditorApi\Material\MaterialSaverInterface;
 interface VerstkaEditorInterface
 {
 
-    const API_HOST = 'https://verstka.org';
+    public const API_HOST = 'https://verstka.org';
 
     /**
      * @param string      $materialId
-     * @param string|null $articleBody
+     * @param null|string $articleBody
      * @param bool        $isMobile
      * @param string      $clientSaveUrl
      * @param array       $customFields
      *
-     * @return string  Verstka edit url
+     * @return string Verstka edit url
      */
     public function open(
         string $materialId,

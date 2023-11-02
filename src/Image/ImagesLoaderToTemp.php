@@ -29,16 +29,15 @@ final class ImagesLoaderToTemp implements ImagesLoaderInterface
      */
     private $lackingImages;
 
-
     /**
      * @inheritDoc
+     *
      * @return array
      */
     public function getLoadedImages(): array
     {
         return $this->loadedImages;
     }
-
 
     /***
      * @inheritDoc

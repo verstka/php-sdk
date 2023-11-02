@@ -14,7 +14,6 @@ use Verstka\EditorApi\VerstkaEditorInterface;
  * @deprecated  The class will be removed in the future
  *
  * Use the interface implementation {@see \Verstka\EditorApi\VerstkaBuilderInterface}
- *
  * @see         \Verstka\EditorApi\Builder\VerstkaConfigBuilder
  * @see         \Verstka\EditorApi\Builder\VerstkaEnvBuilder
  *
@@ -34,7 +33,7 @@ class Verstka implements VerstkaEditorInterface
 
     /**
      * @param string      $materialId
-     * @param string|null $articleBody
+     * @param null|string $articleBody
      * @param bool        $isMobile
      * @param string      $clientSaveUrl
      * @param array       $customFields
