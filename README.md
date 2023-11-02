@@ -199,11 +199,9 @@ Final CSS file:
 ```
 
 ## Displaying Articles
-
 The HTML code of the article should be accompanied by the connection of the script:
 
-```html
-
+```
 <link href="//go.verstka.org/critical.css" rel="stylesheet">
 
 <script type = "text / javascript">
@@ -212,11 +210,12 @@ The HTML code of the article should be accompanied by the connection of the scri
             display_mode: 'default'
         });
     };
-
-
-
-
-
 </script>
 <script src="//go.verstka.org/api.js" async type="text/javascript"></script>
 ```
+
+### Options `options`
+#### All parameters are optional.
+* `observe_selector` - selector of element that can potentially change position of the article. For example, selector of a banner, that can push an article down.
+#### Further parameters if it is impossible to type out a separate mobile version:
+* `display_mode` - switches between article display modes, please set `default`;
