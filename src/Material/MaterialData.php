@@ -14,7 +14,7 @@ final class MaterialData implements MaterialDataInterface
     /**
      * @var array
      */
-    private $customFields;
+    private $customFields = [];
 
     /**
      * @psalm-param  array{
@@ -28,7 +28,7 @@ final class MaterialData implements MaterialDataInterface
     public function __construct(array $data)
     {
         $this->data = $data;
-        $this->customFields = json_decode($this->data['custom_fields'], true);
+        $this->customFields = isset($data['custom_fields']) ? json_decode($this->data['custom_fields'], true) : [];
     }
 
     /**
@@ -44,7 +44,7 @@ final class MaterialData implements MaterialDataInterface
      */
     public function getMaterialId(): string
     {
-        return (string) $this->data['material_id'];
+        return (string)$this->data['material_id'];
     }
 
     /**
@@ -76,7 +76,7 @@ final class MaterialData implements MaterialDataInterface
      */
     public function getUserId(): string
     {
-        return (string) $this->data['user_id'];
+        return (string)$this->data['user_id'];
     }
 
     /**
@@ -84,7 +84,7 @@ final class MaterialData implements MaterialDataInterface
      */
     public function getSessionId(): string
     {
-        return (string) $this->data['session_id'];
+        return (string)$this->data['session_id'];
     }
 
     public function offsetExists($offset): bool

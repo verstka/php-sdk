@@ -20,14 +20,14 @@ final class ImagesLoaderToTemp implements ImagesLoaderInterface
      *
      * @var array<string,string>
      */
-    private $loadedImages;
+    private $loadedImages = [];
 
     /**
      * Loaded images to temp dir
      *
      * @var array<array-key,string>
      */
-    private $lackingImages;
+    private $lackingImages = [];
 
     /**
      * @inheritDoc
@@ -52,9 +52,9 @@ final class ImagesLoaderToTemp implements ImagesLoaderInterface
      * @param non-empty-string $imagesDirectoryUrl
      * @param array<string>    $imageNames
      *
-     * @return array
+     * @return void
      */
-    public function load(string $imagesDirectoryUrl, array $imageNames): array
+    public function load(string $imagesDirectoryUrl, array $imageNames): void
     {
         $imagesForDownload = [];
         foreach ($imageNames as $imageName) {

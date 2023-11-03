@@ -72,7 +72,14 @@ for example and then just:
 ```php
 /// ....
 $verstkaEditor  = $verstkaBuilder->build();
-$verstka_url = $verstkaEditor->open($material_id, $body, $is_mobile, 'https://mydomain.com/verstka/save', $custom_fileds);
+
+$verstka_url = $verstkaEditor->open(
+    $material_id, 
+    $body, 
+    $is_mobile, 
+    'https://mydomain.com/verstka/save', 
+    $custom_fileds
+);
 ```
 
 ## Saving an article
