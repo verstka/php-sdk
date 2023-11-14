@@ -8,7 +8,7 @@ First, You need to require package by composer with composer require verstka/php
 $verstkaBuilder = new \Verstka\EditorApi\Builder\VerstkaConfigBuilder(
     'API_KEY_FRsGhsgFGSG45d34',
     'SECRET_KEY_32ff2f23f32f',
-    'https://aws-host.toexternal_storage.com',  // Optional, image storage host
+    'aws-host.toexternal_storage.com',          // Optional, image storage host
     'https://verstka.org',                      // Optional, host api Verstka
     true,                                       // Optional, Debug mode
   );
