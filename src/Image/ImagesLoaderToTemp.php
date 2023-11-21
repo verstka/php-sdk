@@ -117,7 +117,8 @@ final class ImagesLoaderToTemp implements ImagesLoaderInterface
             'fulfilled' => function (Response $response, $imageName) use (&$imagesForDownload) {
                 $imagesForDownload[$imageName]['is_lacking'] = false;
             },
-            'rejected' => function (RequestException $reason, $imageName) use (&$imagesForDownload) {
+            // 'rejected' => function (RequestException $reason, $imageName) use (&$imagesForDownload) {
+            'rejected' => function (\Throwable $reason, $imageName) use (&$imagesForDownload) {
                 $imagesForDownload[$imageName]['is_lacking'] = true;
             }
         ]);
