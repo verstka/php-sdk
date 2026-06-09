@@ -9,7 +9,7 @@ $verstkaBuilder = new \Verstka\EditorApi\Builder\VerstkaConfigBuilder(
     'API_KEY_FRsGhsgFGSG45d34',
     'SECRET_KEY_32ff2f23f32f',
     'aws-host.toexternal_storage.com',          // Optional, image storage host
-    'https://verstka.org',                      // Optional, Verstka API url
+    'https://api.r1.verstka.org',                      // Optional, Verstka API url
     true,                                       // Optional, Debug mode
   );
 
@@ -31,7 +31,7 @@ set ```.env``` file in the root of your project with settings listed below:
 ```
 verstka_apikey = "..."
 verstka_secret = "..."
-verstka_host = "https://verstka.org"
+verstka_host = "https://api.r1.verstka.org"
 ```
 
 if you don't use vlucas/phpdotenv or yiithings/yii2-dotenv or something like that just set environment before new object
@@ -40,7 +40,7 @@ of Verstka create:
 ```
 putenv('verstka_apikey=...');
 putenv('verstka_secret=...');
-putenv('verstka_host=https://verstka.org');
+putenv('verstka_host=https://api.r1.verstka.org');
 ```
 
 additional parameters:
@@ -209,7 +209,7 @@ Final CSS file:
 The HTML code of the article should be accompanied by the connection of the script:
 
 ```
-<link href="//go.verstka.org/critical.css" rel="stylesheet">
+<link href="//go.r1.verstka.org/critical.css" rel="stylesheet">
 
 <script type = "text / javascript">
     window.onVMSAPIReady = function (api) {
@@ -219,7 +219,7 @@ The HTML code of the article should be accompanied by the connection of the scri
     };
 </script>
 
-<script src="//go.verstka.org/api.js" async type="text/javascript"></script>
+<script src="//go.r1.verstka.org/api.js" async type="text/javascript"></script>
 ```
 
 ### Options `options`

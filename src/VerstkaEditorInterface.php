@@ -10,7 +10,7 @@ use Verstka\EditorApi\Material\MaterialSaverInterface;
 interface VerstkaEditorInterface
 {
 
-    public const API_HOST = 'https://verstka.org';
+    public const API_HOST = 'https://api.r1.verstka.org';
 
     /**
      * @param string      $materialId

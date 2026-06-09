@@ -7,7 +7,7 @@ namespace Verstka\EditorApi\Image;
 interface ImagesLoaderInterface
 {
     /**
-     * @param non-empty-string $imagesDirectoryUrl https://verstka.org/contents/uid/images/
+     * @param non-empty-string $imagesDirectoryUrl https://api.r1.verstka.org/contents/uid/images/
      * @param array            $imageNames         ['fileName.jpg', 'image.gif'....]
      */
     public function load(string $imagesDirectoryUrl, array $imageNames): void;
